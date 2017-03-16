@@ -1433,6 +1433,19 @@ SyntaxElementMorph.prototype.labelPart = function (spec) {
         case '%p':
             part = new ReporterSlotMorph(true);
             break;
+        case '%colorParams':
+            part = new InputSlotMorph(
+                null, // text
+                false,  // numeric?
+                {
+                    'hue' : ['hue'],
+                    'saturation' : ['saturation'],
+                    'shade' : ['shade'],
+                    'opacity' : ['opacity']
+                },
+                true // read-only
+            );
+            break;
 
     // code mapping (experimental)
 
@@ -1460,7 +1473,6 @@ SyntaxElementMorph.prototype.labelPart = function (spec) {
                 true // read-only
             );
             break;
-
     // symbols:
 
         case '%turtle':
@@ -2121,6 +2133,7 @@ SyntaxElementMorph.prototype.endLayout = function () {
     %f      - round function slot, unevaluated if replaced,
     %r      - round reporter slot
     %p      - hexagonal predicate slot
+    %colorParams - drop-down for pen color params
 
     rings:
 
