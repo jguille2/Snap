@@ -2051,11 +2051,39 @@ Color.prototype.rgb = function () {
     return [r * 255, g * 255, b * 255];
 };
 
-Object.defineProperty(Color.prototype, 'r', {get : function () { return this.rgb()[0];}});
+Color.prototype.setRGB = function (col, val) {
+    var color;
+    if (col == 'r') {
+        color = new Color(val, this.rgb()[1], this.rgb()[2]);
+    } else if (col == 'g') {
+        color = new Color(this.rgb()[0], val, this.rgb()[2]);
+    } else if (col == 'b') {
+        color = new Color(this.rgb()[0], this.rgb()[1], val);
+    } else {
+        color = this.copy();
+    }
+    this.hue = color.hue;
+    this.saturation = color.saturation;
+    this.shade = color.shade;
+};
 
-Object.defineProperty(Color.prototype, 'g', {get : function () { return this.rgb()[1];}});
+Object.defineProperty(Color.prototype, 'r', {
+    get: function () { return this.rgb()[0]; },
+    set: function (val) { this.setRGB('r', val); }
+    }
+);
 
-Object.defineProperty(Color.prototype, 'b', {get : function () { return this.rgb()[2];}});
+Object.defineProperty(Color.prototype, 'g', {
+    get: function () { return this.rgb()[1]; },
+    set: function (val) { this.setRGB('g', val); }
+    }
+);
+
+Object.defineProperty(Color.prototype, 'b', {
+    get: function () { return this.rgb()[2]; },
+    set: function (val) { this.setRGB('b', val); }
+    }
+);
 
 ////////////////////////////////////////////////////////// /</Pending> - Check hsv functions and implement rgb getters
 // Color mixing:
