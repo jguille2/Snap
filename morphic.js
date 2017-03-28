@@ -1913,17 +1913,17 @@ function Color(m, p1, p2, p3, p4) {
         var ll = (cmax + cmin) / 2;
         this.setShade(ll * 200);
         if (delta == 0) {
-            this.hue = 0;
-            this.saturation = 0;
+            this.setHue(0);
+            this.setSaturation(0);
         } else if (cmax == r) {
-            this.hue = 60 / 3.6 * (((g - b) / delta) % 6);
-            this.saturation = delta * 100 / (1 - Math.abs((2 * ll) - 1));
+            this.setHue(60 / 3.6 * (((g - b) / delta) % 6));
+            this.setSaturation(delta * 100 / (1 - Math.abs((2 * ll) - 1)));
         } else if (cmax == g) {
-            this.hue = 60 / 3.6 * (((b - r) / delta) + 2);
-            this.saturation = delta * 100 / (1 - Math.abs((2 * ll) - 1));
+            this.setHue(60 / 3.6 * (((b - r) / delta) + 2));
+            this.setSaturation(delta * 100 / (1 - Math.abs((2 * ll) - 1)));
         } else if (cmax == b) {
-            this.hue = 60 / 3.6 * (((r - g) / delta) + 4);
-            this.saturation = delta * 100 / (1 - Math.abs((2 * ll) - 1));
+            this.setHue(60 / 3.6 * (((r - g) / delta) + 4));
+            this.setSaturation(delta * 100 / (1 - Math.abs((2 * ll) - 1)));
         }
     }
 }
