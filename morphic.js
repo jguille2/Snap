@@ -1933,23 +1933,23 @@ function Color(m, p1, p2, p3, p4) {
 Color.prototype.setHue = function(val) {
     // It maps original 0-360 degrees polar coordinates to 0-100 and wrapping like a roller.
     // Default value is 0
-    this.hue = (typeof(val) == 'number') ? ((val > 0 || (val % 100) == 0) ? val % 100 : 100 + (val % 100)) : 0;
+    this.hue = (typeof(val) == 'number') ? ((val > 0 || (val % 100) == 0) ? Math.round((val % 100) * 100) / 100 : Math.round((100 + (val % 100)) * 100) / 100) : 0;
 };
 
 Color.prototype.setSaturation = function(val) {
     // % value, like HSLA saturation. No wrapping.
-    this.saturation = (typeof(val) == 'number') ? (Math.min(100, Math.max(0, val))) : 100;
+    this.saturation = (typeof(val) == 'number') ? (Math.min(100, Math.max(0, Math.round(val * 100) / 100))) : 100;
 };
 
 Color.prototype.setShade = function(val) {
     // It maps original % (0-100)lightness value to 0-200 and wrapping 200-400 to show continuity. Beyond, wrapping like a roller.
     // Default value is 100
-    this.shade = (typeof(val) == 'number') ? ((val > 0 || (val % 400) == 0) ? val % 400 : 400 + (val % 400)) : 100;
+    this.shade = (typeof(val) == 'number') ? ((val > 0 || (val % 400) == 0) ? Math.round((val % 400) * 100) / 100 : Math.round((400 + (val % 400)) * 100) / 100) : 100;
 };
 
 Color.prototype.setOpacity = function(val) {
     // % value, like HSLA alpha. No wrapping.
-    this.opacity = (typeof(val) == 'number') ? (Math.min(100, Math.max(0, val))) : 100;
+    this.opacity = (typeof(val) == 'number') ? (Math.min(100, Math.max(0, Math.round(val * 100) / 100))) : 100;
 };
 
 // Get Lightness
