@@ -5052,14 +5052,35 @@ ColorPaletteMorph.prototype.init = function (target, size) {
 };
 
 ColorPaletteMorph.prototype.drawNew = function () {
-    var context, ext, x, y, h, l;
+    var context, ext, x, y, h, l, colors;
 
     ext = this.extent();
     this.image = newCanvas(this.extent());
     context = this.image.getContext('2d');
     this.choice = new Color();
-    for (x = 0; x <= ext.x; x += 1) {
-        h = 360 * x / ext.x;
+    colors = ['rgb(255, 0, 0)',
+		'rgb(255, 255, 0)',
+		'rgb(0, 255, 0)',
+		'rgb(0, 255, 255)',
+		'rgb(0, 0, 255)',
+		'rgb(255, 0, 255)',
+		'rgb(255, 255, 255)',
+		'rgb(200, 200, 200)',
+		'rgb(100, 100, 100)',
+		'rgb(0, 0, 0)'
+	];
+	for (x = 0; x < 10; x++) {
+		y = x * ext.y / 10;
+    	context.fillStyle = colors[x];
+		context.fillRect(0, y, 10, 10);
+	}
+    for (y = 0; y <= ext.y; y+= 1) {
+        l = 100 - (y/ ext.y * 100);
+        context.fillStyle = 'hsl(0, 0%, ' + l + '%)';
+        context.fillRect(10, y, 10, 1);
+    }
+    for (x = 20; x <= ext.x; x += 1) {
+        h = 360 * (x - 20) / (ext.x - 20);
         for (y = 0; y <= ext.y; y += 1) {
             l = 100 - (y / ext.y * 100);
             context.fillStyle = 'hsl(' + h + ',100%,' + l + '%)';
