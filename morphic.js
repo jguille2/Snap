@@ -1961,10 +1961,10 @@ Color.prototype.reportLightness = function() {
 
 Color.prototype.toString = function () {
     return 'hsla(' +
-        Math.round(this.hue * 3.6) + ',' +
-        Math.round(this.saturation) + '%,' +
-        Math.round(this.reportLightness()) + '%,' +
-        (this.opacity / 100) + ')';
+        this.hue * 3.6 + ',' +
+        this.saturation + '%,' +
+        this.reportLightness() + '%,' +
+        this.opacity / 100 + ')';
 };
 
 // Color copying:
@@ -2048,7 +2048,7 @@ Color.prototype.rgb = function () {
         g = m;
         b = x + m;
     }
-    return [r * 255, g * 255, b * 255];
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 };
 
 Color.prototype.setRGB = function (col, val) {
@@ -2062,9 +2062,9 @@ Color.prototype.setRGB = function (col, val) {
     } else {
         color = this.copy();
     }
-    this.hue = color.hue;
-    this.saturation = color.saturation;
-    this.shade = color.shade;
+    this.setHue(color.hue);
+    this.setSaturation(color.saturation);
+    this.setShade(color.shade);
 };
 
 Object.defineProperty(Color.prototype, 'r', {
@@ -5058,34 +5058,42 @@ ColorPaletteMorph.prototype.drawNew = function () {
     this.image = newCanvas(this.extent());
     context = this.image.getContext('2d');
     this.choice = new Color();
-    colors = ['rgb(255, 0, 0)',
-		'rgb(255, 255, 0)',
-		'rgb(0, 255, 0)',
-		'rgb(0, 255, 255)',
-		'rgb(0, 0, 255)',
-		'rgb(255, 0, 255)',
-		'rgb(255, 255, 255)',
-		'rgb(200, 200, 200)',
-		'rgb(100, 100, 100)',
-		'rgb(0, 0, 0)'
+    colors = ['hsl(0, 0%, 100%)', //white
+		'hsl(0, 0%, 75%)',        //silver
+		'hsl(0, 0%, 50%)',        //gray
+		'hsl(0, 0%, 41%)',        //dimgray
+		'hsl(0, 0%, 0%)',         //black
+		'hsl(0, 100%, 25%)',      //maroon
+		'hsl(25, 76%, 31%)',      //saddlebrown
+		'hsl(25, 75%, 47%)',      //chocolate
+		'hsl(0, 100%, 50%)',      //red
+		'hsl(30, 100%, 50%)',     //orange
+		'hsl(60, 100%, 50%)',     //yellow
+		'hsl(120, 100%, 50%)',    //green
+		'hsl(200, 100%, 50%)',    //blue
+		'hsl(240, 100%, 50%)',    //indigo
+		'hsl(270, 100%, 50%)',    //violet
+		'hsl(300, 100%, 50%)'     //magenta
 	];
-	for (x = 0; x < 10; x++) {
-		y = x * ext.y / 10;
-    	context.fillStyle = colors[x];
-		context.fillRect(0, y, 10, 10);
-	}
-    for (y = 0; y <= ext.y; y+= 1) {
-        l = 100 - (y/ ext.y * 100);
-        context.fillStyle = 'hsl(0, 0%, ' + l + '%)';
-        context.fillRect(10, y, 10, 1);
-    }
-    for (x = 20; x <= ext.x; x += 1) {
-        h = 360 * (x - 20) / (ext.x - 20);
-        for (y = 0; y <= ext.y; y += 1) {
-            l = 100 - (y / ext.y * 100);
+    // HSL palette (with saturation = 100%)
+    for (x = 0; x <= ext.x; x++) {
+        h = 360 * x / ext.x;
+        for (y = 0; y <= ext.y - 30; y++) {
+            l = 100 - (y / (ext.y - 30) * 100);
             context.fillStyle = 'hsl(' + h + ',100%,' + l + '%)';
             context.fillRect(x, y, 1, 1);
         }
+    }
+    // Gray scale
+    for (x = 0; x <= ext.x; x++) {
+        l = 100 - (x/ ext.x * 100);
+        context.fillStyle = 'hsl(0, 0%, ' + l + '%)';
+        context.fillRect(x, ext.y - 30, 1, 15);
+    }
+    // 16 colors palette
+    for (x = 0; x < 16; x++) {
+	    context.fillStyle = colors[x];
+        context.fillRect(x * ext.x / 16, ext.y - 15, ext.x / 16, 15);
     }
 };
 
