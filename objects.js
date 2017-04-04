@@ -483,6 +483,12 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'pen',
             spec: 'set pen color to %clr'
         },
+        switchToColor: {
+            only: SpriteMorph,
+            type: 'command',
+            category: 'pen',
+            spec: 'switch to pen color %colorPalette'
+        },
         setColorParam: {
             only: SpriteMorph,
             type: 'command',
@@ -1891,6 +1897,7 @@ SpriteMorph.prototype.blockTemplates = function (category) {
         blocks.push(block('up'));
         blocks.push('-');
         blocks.push(block('setColor'));
+        blocks.push(block('switchToColor'));
         blocks.push('-');
         blocks.push(block('changeColorParam'));
         blocks.push(block('setColorParam'));
@@ -3250,6 +3257,39 @@ SpriteMorph.prototype.changeBrightness = function (delta) {
 };
 
 // </Five old functions>
+SpriteMorph.prototype.switchToColor = function(num) {
+    // palette colors in [R, G , B] format
+    // colors declared in blocks.js (%colorPalette slot)
+    var colors = [[0, 0, 0],  //black
+        [128, 128, 128],      //gray
+        [192, 192, 192],      //silver
+        [255, 255, 255],      //white
+        [139, 69, 19],        //saddlebrown
+        [128, 0, 0],          //maroon
+        [255, 0, 0],          //red
+        [255, 192, 203],      //pink
+        [255, 165, 0],        //orange
+        [210, 105, 30],       //chocolate
+        [255, 255, 0],        //yellow
+        [128, 128, 0],        //olive
+        [0, 255, 0],          //lime
+        [0, 128, 0],          //green
+        [0, 255, 255],        //aqua
+        [0, 128, 128],        //teal
+        [0, 0, 255],          //blue
+        [0, 0, 128],          //navy
+        [128, 0, 128],        //purple
+        [255, 0, 255]         //magenta
+    ];
+    if (num > 0 && num < colors.length + 1) {
+        num = Math.floor(num);
+        this.color = new Color(colors[num - 1][0], colors[num - 1][1], colors[num - 1][2]);
+        if (!this.costume) {
+            this.drawNew();
+            this.changed();
+        }
+    }
+}
 
 SpriteMorph.prototype.setColorParam = function(param, num) {
     var param = param instanceof Array ? param[0] : null;

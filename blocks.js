@@ -1446,6 +1446,35 @@ SyntaxElementMorph.prototype.labelPart = function (spec) {
                 true // read-only
             );
             break;
+        case '%colorPalette':
+            part = new InputSlotMorph(
+                null, //text
+                true, //numeric?
+                {
+                    'black' : 1,
+                    'gray' : 2,
+                    'silver' : 3,
+                    'white' : 4,
+                    'saddlebrown' : 5,
+                    'maroon' : 6,
+                    'red' : 7,
+                    'pink' : 8,
+                    'orange' : 9,
+                    'chocolate' : 10,
+                    'yellow' : 11,
+                    'olive' : 12,
+                    'lime' : 13,
+                    'green' : 14,
+                    'aqua' : 15,
+                    'teal' : 16,
+                    'blue' : 17,
+                    'navy' : 18,
+                    'purple' : 19,
+                    'magenta' : 20
+                },
+                true //read-only
+            );
+            break;
 
     // code mapping (experimental)
 
