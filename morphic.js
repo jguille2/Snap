@@ -1879,171 +1879,277 @@ Animation.prototype.step = function () {
 
 // Color instance creation:
 
-function Color(r, g, b, a) {
-    // all values are optional, just (r, g, b) is fine
-    this.r = r || 0;
-    this.g = g || 0;
-    this.b = b || 0;
-    this.a = a || ((a === 0) ? 0 : 1);
+function Color(m, p1, p2, p3, p4) {
+    // for backward compatibility we can use Color (r, g, b, a), fully used in Snap! code
+    // but we have two extra methods: Color('s', hue, saturation, shade, opacity) using Snap properties and Color("l", h, s, l, a) with HSLA values
+    if (m == 's') {
+    // Snap - Color('s', hue, saturation, shade, opacity)
+    // Default values are hue = 0, saturation = shade = opacity = 100
+        this.setHue(p1);
+        this.setSaturation(p2);
+        this.setShade(p3);
+        this.setOpacity(p4);
+    } else if (m == 'l') {
+    // HSLA - Color("l", h, s, l, a)
+    // Default values are h = 0, s = 100, l = 50 and a = 1
+        this.setHue((p1 || 0) / 3.6);
+        this.setSaturation(p2 || ((p2 == 0) ? 0 : 100));
+        if (p3) {
+            this.setShade(Math.min(Math.max(0, p3 * 2), 200));
+        } else {
+            this.setShade((p3 == 0) ? 0 : 100);
+        }
+        this.setOpacity((p4 || ((p4 == 0) ? 0 : 1)) * 100);
+    } else {
+    // RGBA - Color (r, g, b, a)
+    // Default values are r = g = b = 0 and a = 1
+    // 
+        var r = (typeof(m) == 'number') ? (Math.min(255, Math.max(0, m))) : 0;
+        var g = (typeof(p1) == 'number') ? (Math.min(255, Math.max(0, p1))) : 0;
+        var b = (typeof(p2) == 'number') ? (Math.min(255, Math.max(0, p2))) : 0;
+        this.setOpacity((p3 || ((p3 == 0) ? 0 : 1)) * 100);
+        r = r / 255;
+        g = g / 255;
+        b = b / 255;
+        var cmax = Math.max(r, g, b);
+        var cmin = Math.min(r, g, b);
+        var delta = cmax - cmin;
+        var ll = (cmax + cmin) / 2;
+        this.setShade(ll * 200);
+        if (delta == 0) {
+            this.setHue(0);
+            this.setSaturation(0);
+        } else if (cmax == r) {
+            this.setHue(60 / 3.6 * (((g - b) / delta) % 6));
+            this.setSaturation(delta * 100 / (1 - Math.abs((2 * ll) - 1)));
+        } else if (cmax == g) {
+            this.setHue(60 / 3.6 * (((b - r) / delta) + 2));
+            this.setSaturation(delta * 100 / (1 - Math.abs((2 * ll) - 1)));
+        } else if (cmax == b) {
+            this.setHue(60 / 3.6 * (((r - g) / delta) + 4));
+            this.setSaturation(delta * 100 / (1 - Math.abs((2 * ll) - 1)));
+        }
+    }
 }
 
-// Color string representation: e.g. 'rgba(255,165,0,1)'
+// Color properties setting, to ensure wrapping and range
+
+Color.prototype.setHue = function(val) {
+    // It maps original 0-360 degrees polar coordinates to 0-100 and wrapping like a roller.
+    // Default value is 0
+    this.hue = (typeof(val) == 'number') ? ((val > 0 || (val % 100) == 0) ? Math.round((val % 100) * 100) / 100 : Math.round((100 + (val % 100)) * 100) / 100) : 0;
+};
+
+Color.prototype.setSaturation = function(val) {
+    // % value, like HSLA saturation. No wrapping.
+    this.saturation = (typeof(val) == 'number') ? (Math.min(100, Math.max(0, Math.round(val * 100) / 100))) : 100;
+};
+
+Color.prototype.setShade = function(val) {
+    // It maps original % (0-100)lightness value to 0-200 and wrapping 200-400 to show continuity. Beyond, wrapping like a roller.
+    // Default value is 100
+    this.shade = (typeof(val) == 'number') ? ((val > 0 || (val % 400) == 0) ? Math.round((val % 400) * 100) / 100 : Math.round((400 + (val % 400)) * 100) / 100) : 100;
+};
+
+Color.prototype.setOpacity = function(val) {
+    // % value, like HSLA alpha. No wrapping.
+    this.opacity = (typeof(val) == 'number') ? (Math.min(100, Math.max(0, Math.round(val * 100) / 100))) : 100;
+};
+
+// Get Lightness
+
+Color.prototype.reportLightness = function() {
+    return (this.shade < 200) ? this.shade / 2 : (400 - this.shade) / 2;
+};
+// Color string representation in HSLA (a suitable css color value) for: e.g. 'hsla(10,100,50,1)'
 
 Color.prototype.toString = function () {
-    return 'rgba(' +
-        Math.round(this.r) + ',' +
-        Math.round(this.g) + ',' +
-        Math.round(this.b) + ',' +
-        this.a + ')';
+    return 'hsla(' +
+        this.hue * 3.6 + ',' +
+        this.saturation + '%,' +
+        this.reportLightness() + '%,' +
+        this.opacity / 100 + ')';
 };
 
 // Color copying:
 
 Color.prototype.copy = function () {
     return new Color(
-        this.r,
-        this.g,
-        this.b,
-        this.a
+        's',
+        this.hue,
+        this.saturation,
+        this.shade,
+        this.opacity
     );
 };
 
 // Color comparison:
 
 Color.prototype.eq = function (aColor) {
-    // ==
+    // the same color with different opacity (alpha) is considered equal
     return aColor &&
-        this.r === aColor.r &&
-        this.g === aColor.g &&
-        this.b === aColor.b;
+        this.hue === aColor.hue &&
+        this.saturation === aColor.saturation &&
+        this.shade === aColor.shade &&
+        this.opacity === aColor.opacity;
 };
-
-// Color conversion (hsv):
+// Color conversion (hsv, rgb):
 
 Color.prototype.hsv = function () {
+    // For backward compatibility with old library and JS coders
+    // h, s and v are in the [0, 1] range
     // ignore alpha
-    var max, min, h, s, v, d,
-        rr = this.r / 255,
-        gg = this.g / 255,
-        bb = this.b / 255;
-    max = Math.max(rr, gg, bb);
-    min = Math.min(rr, gg, bb);
-    h = max;
-    s = max;
-    v = max;
-    d = max - min;
-    s = max === 0 ? 0 : d / max;
-    if (max === min) {
-        h = 0;
-    } else {
-        switch (max) {
-        case rr:
-            h = (gg - bb) / d + (gg < bb ? 6 : 0);
-            break;
-        case gg:
-            h = (bb - rr) / d + 2;
-            break;
-        case bb:
-            h = (rr - gg) / d + 4;
-            break;
-        }
-        h /= 6;
-    }
+    var h = this.hue / 100;
+    var t = this.saturation * ((this.reportLightness() < 50) ? this.reportLightness() : 100 - this.reportLightness()) / 100;
+    var s = ((this.reportLightness() + t) == 0) ? 0 : 2 * t / (this.reportLightness() + t);
+    var v = (t + this.reportLightness()) / 100;
     return [h, s, v];
 };
 
 Color.prototype.set_hsv = function (h, s, v) {
-    // ignore alpha, h, s and v are to be within [0, 1]
-    var i, f, p, q, t;
-    i = Math.floor(h * 6);
-    f = h * 6 - i;
-    p = v * (1 - s);
-    q = v * (1 - f * s);
-    t = v * (1 - (1 - f) * s);
-    switch (i % 6) {
-    case 0:
-        this.r = v;
-        this.g = t;
-        this.b = p;
-        break;
-    case 1:
-        this.r = q;
-        this.g = v;
-        this.b = p;
-        break;
-    case 2:
-        this.r = p;
-        this.g = v;
-        this.b = t;
-        break;
-    case 3:
-        this.r = p;
-        this.g = q;
-        this.b = v;
-        break;
-    case 4:
-        this.r = t;
-        this.g = p;
-        this.b = v;
-        break;
-    case 5:
-        this.r = v;
-        this.g = p;
-        this.b = q;
-        break;
-    }
-
-    this.r *= 255;
-    this.g *= 255;
-    this.b *= 255;
-
+    // ignore alpha, expected h, s and v within [0, 1]
+    h = h * 360;
+    h = (typeof(h) == 'number') ? ((h > 0 || (h % 360) == 0) ? h % 360 : 360 + (h % 360)) : 0;
+    s = Math.max(0, Math.min(100, s * 100));
+    v = Math.max(0, Math.min(100, v * 100));
+    var l = (2 - s / 100) * v / 2;
+    this.setHue(h / 3.6);
+    this.setSaturation(s * v / (l < 50 ? l * 2 : 200 - l * 2));
+    this.setShade(l * 2);
 };
+
+Color.prototype.rgb = function () {
+    var r, g, b,
+        h = 3.60 * this.hue,
+        s = this.saturation / 100,
+        l = this.reportLightness() / 100,
+        hh = h / 60,
+        c = (1 - Math.abs((2 * l) - 1)) * s,
+        x = c * (1 - Math.abs((hh % 2) - 1)),
+        m = l - (c / 2);
+    if (hh <= 1) {
+        r = c + m;
+        g = x + m;
+        b = m;
+    } else if (hh <=2) {
+        r = x + m;
+        g = c + m;
+        b = m;
+    } else if (hh <=3) {
+        r = m;
+        g = c + m;
+        b = x + m;
+    } else if (hh <=4) {
+        r = m;
+        g = x + m;
+        b = c + m;
+    } else if (hh <=5) {
+        r = x + m;
+        g = m;
+        b = c + m;
+    } else if (hh <=6) {
+        r = c + m;
+        g = m;
+        b = x + m;
+    }
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+};
+
+Color.prototype.setRGB = function (col, val) {
+    var color;
+    if (col == 'r') {
+        color = new Color(val, this.rgb()[1], this.rgb()[2]);
+    } else if (col == 'g') {
+        color = new Color(this.rgb()[0], val, this.rgb()[2]);
+    } else if (col == 'b') {
+        color = new Color(this.rgb()[0], this.rgb()[1], val);
+    } else {
+        color = this.copy();
+    }
+    this.setHue(color.hue);
+    this.setSaturation(color.saturation);
+    this.setShade(color.shade);
+};
+
+Object.defineProperty(Color.prototype, 'r', {
+    get: function () { return this.rgb()[0]; },
+    set: function (val) { this.setRGB('r', val); }
+    }
+);
+
+Object.defineProperty(Color.prototype, 'g', {
+    get: function () { return this.rgb()[1]; },
+    set: function (val) { this.setRGB('g', val); }
+    }
+);
+
+Object.defineProperty(Color.prototype, 'b', {
+    get: function () { return this.rgb()[2]; },
+    set: function (val) { this.setRGB('b', val); }
+    }
+);
 
 // Color mixing:
 
 Color.prototype.mixed = function (proportion, otherColor) {
-    // answer a copy of this color mixed with another color, ignore alpha
+    // return a new color, weighted mixture of this color with 'otherColor'
+    // saturation, lightness and opacity are weighted; hue is halfway (by the shortest path of the color roler)
     var frac1 = Math.min(Math.max(proportion, 0), 1),
-        frac2 = 1 - frac1;
+        frac2 = 1 - frac1,
+        hh, ll;
+    if (Math.abs(this.hue - otherColor.hue) > 50) {
+        if (this.hue > otherColor.hue) {
+		    hh = this.hue * frac1 + (otherColor.hue + 100) * frac2;
+        } else {
+            hh = (this.hue + 100) * frac1 + otherColor.hue * frac2;
+        }
+        hh = (hh > 100)? hh - 100 : hh;
+    } else {
+        hh = this.hue * frac1 + otherColor.hue * frac2;
+    }
+    ll = this.reportLightness() * frac1 + otherColor.reportLightness() * frac2;
     return new Color(
-        this.r * frac1 + otherColor.r * frac2,
-        this.g * frac1 + otherColor.g * frac2,
-        this.b * frac1 + otherColor.b * frac2
+        's',
+        hh,
+        this.saturation * frac1 + otherColor.saturation * frac2,
+        ll * 2,
+        this.opacity * frac1 + otherColor.opacity * frac2
     );
 };
 
+// darker and lighter make new colors changing lightness param (is not a mixture)
+
 Color.prototype.darker = function (percent) {
-    // return an rgb-interpolated darker copy of me, ignore alpha
+    // return a darker copy of me (percent decrement of l)
     var fract = 0.8333;
     if (percent) {
         fract = (100 - percent) / 100;
     }
-    return this.mixed(fract, new Color(0, 0, 0));
+    return new Color('s', this.hue, this.saturation, this.reportLightness() * fract * 2, this.opacity);
 };
 
 Color.prototype.lighter = function (percent) {
-    // return an rgb-interpolated lighter copy of me, ignore alpha
-    var fract = 0.8333;
+    // return a lighter copy of me, (percent increment of l)
+    var fract = 1 - 0.8333;
     if (percent) {
-        fract = (100 - percent) / 100;
+        fract = percent / 100;
     }
-    return this.mixed(fract, new Color(255, 255, 255));
+    return new Color('s', this.hue, this.saturation, (this.reportLightness() + (100 - this.reportLightness()) * fract) * 2, this.opacity);
 };
 
 Color.prototype.dansDarker = function () {
-    // return an hsv-interpolated darker copy of me, ignore alpha
-    var hsv = this.hsv(),
-        result = new Color(),
-        vv = Math.max(hsv[2] - 0.16, 0);
-    result.set_hsv(hsv[0], hsv[1], vv);
-    return result;
+    // keep it for backward compatibility - not used in current Snap! code
+    return this.darker();
 };
 
 Color.prototype.inverted = function () {
+    // inverted color has the same saturation and opacity, and the opposite litghtness and hue
     return new Color(
-        255 - this.r,
-        255 - this.g,
-        255 - this.b
+        's',
+        (this.hue > 50) ? this.hue - 50 : this.hue + 50,
+        this.saturation,
+        (100 - this.reportLightness()) * 2,
+        this.opacity
     );
 };
 
@@ -3612,7 +3718,7 @@ Morph.prototype.getPixelColor = function (aPoint) {
         data.data[0],
         data.data[1],
         data.data[2],
-        data.data[3]
+        data.data[3] / 250
     );
 };
 
@@ -4949,18 +5055,55 @@ ColorPaletteMorph.prototype.init = function (target, size) {
 };
 
 ColorPaletteMorph.prototype.drawNew = function () {
-    var context, ext, x, y, h, l;
+    var context, ext, x, y, h, l, colors;
 
     ext = this.extent();
     this.image = newCanvas(this.extent());
     context = this.image.getContext('2d');
     this.choice = new Color();
-    for (x = 0; x <= ext.x; x += 1) {
+    colors = ['rgb(0, 0,0)',    //black
+        'rgb(128, 128, 128)',   //gray
+        'rgb(192, 192, 192)',   //silver
+        'rgb(255, 255, 255)',   //white
+        'rgb(139, 69, 19)',     //saddlebrown
+        'rgb(128, 0, 0)',       //maroon
+        'rgb(255, 0, 0)',       //red
+        'rgb(255, 192, 203)',   //pink
+        'rgb(255, 165, 0)',     //orange
+        'rgb(210, 105, 30)',    //chocolate
+        'rgb(255, 255, 0)',     //yellow
+        'rgb(128, 128, 0)',     //olive
+        'rgb(0, 255, 0)',       //lime
+        'rgb(0, 128, 0)',       //green
+        'rgb(0, 255, 255)',     //aqua
+        'rgb(0, 128, 128)',     //teal
+        'rgb(0, 0, 255)',       //blue
+        'rgb(0, 0, 128)',       //navy
+        'rgb(128, 0, 128)',     //purple
+        'rgb(255, 0, 255)'      //magenta
+    ];
+    // HSL palette (with saturation = 100%)
+    for (x = 0; x <= ext.x; x++) {
         h = 360 * x / ext.x;
-        for (y = 0; y <= ext.y; y += 1) {
-            l = 100 - (y / ext.y * 100);
+        for (y = 0; y <= ext.y - 30; y++) {
+            l = 100 - (y / (ext.y - 30) * 100);
             context.fillStyle = 'hsl(' + h + ',100%,' + l + '%)';
             context.fillRect(x, y, 1, 1);
+        }
+    }
+    // Gray scale
+    for (x = 0; x <= ext.x; x++) {
+        l = 100 - (x/ ext.x * 100);
+        context.fillStyle = 'hsl(0, 0%, ' + l + '%)';
+        context.fillRect(x, ext.y - 30, 1, 10);
+    }
+    // 20 colors palette (two rows)
+    for (x = 0; x < 20; x++) {
+        context.fillStyle = colors[x];
+        if (x % 2 == 0) {
+            context.fillRect((x / 2) * ext.x / 10, ext.y - 20, ext.x / 10, 10);
+        } else {
+            context.fillRect((Math.round(x / 2) - 1) * ext.x / 10, ext.y - 10, ext.x / 10, 10);
         }
     }
 };

@@ -483,33 +483,26 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'pen',
             spec: 'set pen color to %clr'
         },
-        changeHue: {
+        setColorParam: {
             only: SpriteMorph,
             type: 'command',
             category: 'pen',
-            spec: 'change pen color by %n',
-            defaults: [10]
+            spec: 'set pen color %colorParams to %n',
+            defaults: [localize('hue'), 100]
         },
-        setHue: {
+        changeColorParam: {
             only: SpriteMorph,
             type: 'command',
             category: 'pen',
-            spec: 'set pen color to %n',
-            defaults: [0]
+            spec: 'change pen color %colorParams by %n',
+            defaults: [localize('hue'), 10]
         },
-        changeBrightness: {
+        reportColorParam: {
             only: SpriteMorph,
-            type: 'command',
+            type: 'reporter',
             category: 'pen',
-            spec: 'change pen shade by %n',
-            defaults: [10]
-        },
-        setBrightness: {
-            only: SpriteMorph,
-            type: 'command',
-            category: 'pen',
-            spec: 'set pen shade to %n',
-            defaults: [100]
+            spec: 'pen color %colorParams',
+            defaults: [localize('hue')]
         },
         changeSize: {
             only: SpriteMorph,
@@ -1244,7 +1237,28 @@ SpriteMorph.prototype.initBlockMigrations = function () {
             selector: 'doMapValueCode',
             inputs: [['String'], '<#1>'],
             offset: 1
+        },
+        setHue: {
+            selector: 'setColorParam',
+            inputs: [['hue'], '<#1>'],
+            offset: 1
+        },
+        changeHue: {
+            selector: 'changeColorParam',
+            inputs: [['hue'], '<#1>'],
+            offset: 1
+        },
+        setBrightness: {
+            selector: 'setColorParam',
+            inputs: [['shade'], '<#1>'],
+            offset: 1
+        },
+        changeBrightness: {
+            selector: 'changeColorParam',
+            inputs: [['shade'], '<#1>'],
+            offset: 1
         }
+
     };
 };
 
@@ -1284,10 +1298,8 @@ SpriteMorph.prototype.blockAlternatives = {
     down: ['up', 'clear', 'doStamp'],
     up: ['down', 'clear', 'doStamp'],
     doStamp: ['clear', 'down', 'up'],
-    changeHue: ['setHue', 'changeBrightness', 'setBrightness'],
-    setHue: ['changeHue', 'changeBrightness', 'setBrightness'],
-    changeBrightness: ['setBrightness', 'setHue', 'changeHue'],
-    setBrightness: ['changeBrightness', 'setHue', 'changeHue'],
+    setColorParam: ['changeColorParam'],
+    changeColorParam: ['setColorParam'],
     changeSize: ['setSize'],
     setSize: ['changeSize'],
 
@@ -1879,11 +1891,10 @@ SpriteMorph.prototype.blockTemplates = function (category) {
         blocks.push(block('up'));
         blocks.push('-');
         blocks.push(block('setColor'));
-        blocks.push(block('changeHue'));
-        blocks.push(block('setHue'));
         blocks.push('-');
-        blocks.push(block('changeBrightness'));
-        blocks.push(block('setBrightness'));
+        blocks.push(block('changeColorParam'));
+        blocks.push(block('setColorParam'));
+        blocks.push(block('reportColorParam'));
         blocks.push('-');
         blocks.push(block('changeSize'));
         blocks.push(block('setSize'));
@@ -3197,50 +3208,71 @@ SpriteMorph.prototype.setColor = function (aColor) {
 };
 
 SpriteMorph.prototype.getHue = function () {
-    return this.color.hsv()[0] * 100;
+    return this.color.hue;
 };
 
-SpriteMorph.prototype.setHue = function (num) {
-    var hsv = this.color.hsv(),
-        x = this.xPosition(),
-        y = this.yPosition();
+// <Five old functions> Dreprecated. Kept for backward compatibility wit JS coders
 
-    hsv[0] = Math.max(Math.min(+num || 0, 100), 0) / 100;
-    hsv[1] = 1; // we gotta fix this at some time
-    this.color.set_hsv.apply(this.color, hsv);
+SpriteMorph.prototype.setHue = function (num) {
+    this.color.setHue(num);
     if (!this.costume) {
         this.drawNew();
         this.changed();
     }
-    this.gotoXY(x, y);
 };
 
 SpriteMorph.prototype.changeHue = function (delta) {
-    this.setHue(this.getHue() + (+delta || 0));
-};
-
-SpriteMorph.prototype.getBrightness = function () {
-    return this.color.hsv()[2] * 100;
-};
-
-SpriteMorph.prototype.setBrightness = function (num) {
-    var hsv = this.color.hsv(),
-        x = this.xPosition(),
-        y = this.yPosition();
-
-    hsv[1] = 1; // we gotta fix this at some time
-    hsv[2] = Math.max(Math.min(+num || 0, 100), 0) / 100;
-    this.color.set_hsv.apply(this.color, hsv);
+    this.color.setHue(this.color.hue + delta);
     if (!this.costume) {
         this.drawNew();
         this.changed();
     }
-    this.gotoXY(x, y);
+};
+
+SpriteMorph.prototype.getBrightness = function () {
+    return this.color.shade;
+};
+
+SpriteMorph.prototype.setBrightness = function (num) {
+    this.color.setShade(num);
+    if (!this.costume) {
+        this.drawNew();
+        this.changed();
+    }
 };
 
 SpriteMorph.prototype.changeBrightness = function (delta) {
-    this.setBrightness(this.getBrightness() + (+delta || 0));
+    this.color.setShade(this.color.shade + delta);
+    if (!this.costume) {
+        this.drawNew();
+        this.changed();
+    }
 };
+
+// </Five old functions>
+
+SpriteMorph.prototype.setColorParam = function(param, num) {
+    var param = param instanceof Array ? param[0] : null;
+    this.color['set'+ param.charAt(0).toUpperCase() + param.slice(1)](num);
+    if (!this.costume) {
+        this.drawNew();
+        this.changed();
+    }
+};
+
+SpriteMorph.prototype.changeColorParam = function (param, num) {
+    var param = param instanceof Array ? param[0] : null;
+    this.color['set'+ param.charAt(0).toUpperCase() + param.slice(1)](this.color[param] + num);
+    if (!this.costume) {
+        this.drawNew();
+        this.changed();
+    }
+};
+
+SpriteMorph.prototype.reportColorParam = function(param) {
+    var param = param instanceof Array ? param[0] : null;
+    return this.color[param];
+}
 
 // SpriteMorph layers
 

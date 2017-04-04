@@ -1433,6 +1433,19 @@ SyntaxElementMorph.prototype.labelPart = function (spec) {
         case '%p':
             part = new ReporterSlotMorph(true);
             break;
+        case '%colorParams':
+            part = new InputSlotMorph(
+                null, // text
+                false,  // numeric?
+                {
+                    'hue' : ['hue'],
+                    'shade' : ['shade'],
+                    'saturation' : ['saturation'],
+                    'opacity' : ['opacity']
+                },
+                true // read-only
+            );
+            break;
 
     // code mapping (experimental)
 
@@ -1460,7 +1473,6 @@ SyntaxElementMorph.prototype.labelPart = function (spec) {
                 true // read-only
             );
             break;
-
     // symbols:
 
         case '%turtle':
@@ -2121,6 +2133,7 @@ SyntaxElementMorph.prototype.endLayout = function () {
     %f      - round function slot, unevaluated if replaced,
     %r      - round reporter slot
     %p      - hexagonal predicate slot
+    %colorParams - drop-down for pen color params
 
     rings:
 
@@ -11043,7 +11056,7 @@ function ColorSlotMorph(clr) {
 
 ColorSlotMorph.prototype.init = function (clr) {
     ColorSlotMorph.uber.init.call(this, null, true); // silently
-    this.setColor(clr || new Color(145, 26, 68));
+    this.setColor(clr || new Color(255, 0, 0));
 };
 
 ColorSlotMorph.prototype.getSpec = function () {
@@ -11062,7 +11075,7 @@ ColorSlotMorph.prototype.getUserColor = function () {
         mouseUpBak = hand.processMouseUp,
         pal = new ColorPaletteMorph(null, new Point(
             this.fontSize * 16,
-            this.fontSize * 10
+            this.fontSize * 14 //old value -> 10
         ));
     world.add(pal);
     pal.setPosition(this.bottomLeft().add(new Point(0, this.edge)));
