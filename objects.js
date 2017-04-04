@@ -489,6 +489,18 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'pen',
             spec: 'switch to pen color %colorPalette'
         },
+        nextPenColor: {
+            only: SpriteMorph,
+            type: 'command',
+            category: 'pen',
+            spec: 'next pen color'
+        },
+        reportPenColorNumber: {
+            only: SpriteMorph,
+            type: 'reporter',
+            category: 'pen',
+            spec: 'pen color #'
+        },
         setColorParam: {
             only: SpriteMorph,
             type: 'command',
@@ -1391,6 +1403,31 @@ SpriteMorph.prototype.init = function (globals) {
         'brightness': 0
     };
 
+    // sprite colorPalette
+    this.colorNumber = 0;
+    this.colorPalette = [
+        {name: 'black', r: 0, g: 0, b: 0},
+        {name: 'gray', r: 128, g: 128, b: 128},
+        {name: 'silver', r: 192, g: 192, b: 192},
+        {name: 'white', r: 255, g: 255, b: 255},
+        {name: 'saddlebrown', r: 139, g: 69, b: 19},
+        {name: 'maroon', r: 128, g: 0, b: 0},
+        {name: 'red', r: 255, g: 0, b: 0},
+        {name: 'pink', r: 255, g: 192, b: 203},
+        {name: 'orange', r: 255, g: 165, b: 0},
+        {name: 'chocolate', r: 210, g: 105, b: 30},
+        {name: 'yellow', r: 255, g: 255, b: 0},
+        {name: 'olive', r: 128, g: 128, b: 0},
+        {name: 'lime', r: 0, g: 255, b: 0},
+        {name: 'green', r: 0, g: 128, b: 0},
+        {name: 'aqua', r: 0, g: 255, b: 255},
+        {name: 'teal', r: 0, g: 128, b: 128},
+        {name: 'blue', r: 0, g: 0, b: 255},
+        {name: 'navy', r: 0, g: 0, b: 128},
+        {name: 'purple', r: 128, g: 0, b: 128},
+        {name: 'magenta', r: 255, g: 0, b: 255}
+    ];
+
     // sprite inheritance
     this.exemplar = null;
 
@@ -1897,7 +1934,10 @@ SpriteMorph.prototype.blockTemplates = function (category) {
         blocks.push(block('up'));
         blocks.push('-');
         blocks.push(block('setColor'));
+        blocks.push('-');
         blocks.push(block('switchToColor'));
+        blocks.push(block('nextPenColor'));
+        blocks.push(block('reportPenColorNumber'));
         blocks.push('-');
         blocks.push(block('changeColorParam'));
         blocks.push(block('setColorParam'));
@@ -3205,6 +3245,7 @@ SpriteMorph.prototype.show = function () {
 SpriteMorph.prototype.setColor = function (aColor) {
     var x = this.xPosition(),
         y = this.yPosition();
+    this.colorNumber = 0;
     if (!this.color.eq(aColor)) {
         this.color = aColor.copy();
         if (!this.costume) {
@@ -3221,6 +3262,7 @@ SpriteMorph.prototype.getHue = function () {
 // <Five old functions> Dreprecated. Kept for backward compatibility wit JS coders
 
 SpriteMorph.prototype.setHue = function (num) {
+    this.colorNumber = 0;
     this.color.setHue(num);
     if (!this.costume) {
         this.drawNew();
@@ -3229,6 +3271,7 @@ SpriteMorph.prototype.setHue = function (num) {
 };
 
 SpriteMorph.prototype.changeHue = function (delta) {
+    this.colorNumber = 0;
     this.color.setHue(this.color.hue + delta);
     if (!this.costume) {
         this.drawNew();
@@ -3241,6 +3284,7 @@ SpriteMorph.prototype.getBrightness = function () {
 };
 
 SpriteMorph.prototype.setBrightness = function (num) {
+    this.colorNumber = 0;
     this.color.setShade(num);
     if (!this.costume) {
         this.drawNew();
@@ -3249,6 +3293,7 @@ SpriteMorph.prototype.setBrightness = function (num) {
 };
 
 SpriteMorph.prototype.changeBrightness = function (delta) {
+    this.colorNumber = 0;
     this.color.setShade(this.color.shade + delta);
     if (!this.costume) {
         this.drawNew();
@@ -3258,32 +3303,11 @@ SpriteMorph.prototype.changeBrightness = function (delta) {
 
 // </Five old functions>
 SpriteMorph.prototype.switchToColor = function(num) {
-    // palette colors in [R, G , B] format
-    // colors declared in blocks.js (%colorPalette slot)
-    var colors = [[0, 0, 0],  //black
-        [128, 128, 128],      //gray
-        [192, 192, 192],      //silver
-        [255, 255, 255],      //white
-        [139, 69, 19],        //saddlebrown
-        [128, 0, 0],          //maroon
-        [255, 0, 0],          //red
-        [255, 192, 203],      //pink
-        [255, 165, 0],        //orange
-        [210, 105, 30],       //chocolate
-        [255, 255, 0],        //yellow
-        [128, 128, 0],        //olive
-        [0, 255, 0],          //lime
-        [0, 128, 0],          //green
-        [0, 255, 255],        //aqua
-        [0, 128, 128],        //teal
-        [0, 0, 255],          //blue
-        [0, 0, 128],          //navy
-        [128, 0, 128],        //purple
-        [255, 0, 255]         //magenta
-    ];
-    if (num > 0 && num < colors.length + 1) {
-        num = Math.floor(num);
-        this.color = new Color(colors[num - 1][0], colors[num - 1][1], colors[num - 1][2]);
+    num = Math.floor(num);
+    if (num > 0 && num < this.colorPalette.length + 1 && this.colorNumber != num) {
+        this.colorNumber = num;
+        this.colorNumberProcessing = true;
+        this.color = new Color(this.colorPalette[num - 1].r, this.colorPalette[num - 1].g, this.colorPalette[num - 1].b);
         if (!this.costume) {
             this.drawNew();
             this.changed();
@@ -3291,8 +3315,25 @@ SpriteMorph.prototype.switchToColor = function(num) {
     }
 }
 
+SpriteMorph.prototype.nextPenColor = function() {
+    if (this.colorNumber != 0) {
+        this.colorNumber = (this.colorNumber == this.colorPalette.length) ? 1 : this.colorNumber + 1;
+        this.color = new Color(this.colorPalette[this.colorNumber - 1].r, this.colorPalette[this.colorNumber - 1].g, this.colorPalette[this.colorNumber - 1].b);
+        if (!this.costume) {
+            this.drawNew();
+            this.changed();
+        }
+
+    }
+}
+
+SpriteMorph.prototype.reportPenColorNumber = function() {
+    return this.colorNumber;
+}
+
 SpriteMorph.prototype.setColorParam = function(param, num) {
     var param = param instanceof Array ? param[0] : null;
+    this.colorNumber = 0;
     this.color['set'+ param.charAt(0).toUpperCase() + param.slice(1)](num);
     if (!this.costume) {
         this.drawNew();
@@ -3301,6 +3342,7 @@ SpriteMorph.prototype.setColorParam = function(param, num) {
 };
 
 SpriteMorph.prototype.changeColorParam = function (param, num) {
+    this.colorNumber = 0;
     var param = param instanceof Array ? param[0] : null;
     this.color['set'+ param.charAt(0).toUpperCase() + param.slice(1)](this.color[param] + num);
     if (!this.costume) {
