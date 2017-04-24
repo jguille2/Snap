@@ -487,21 +487,21 @@ SpriteMorph.prototype.initBlocks = function () {
             only: SpriteMorph,
             type: 'command',
             category: 'pen',
-            spec: 'set pen color %colorParams to %n',
+            spec: 'set pen %colorParams to %n',
             defaults: [localize('hue'), 100]
         },
         changeColorParam: {
             only: SpriteMorph,
             type: 'command',
             category: 'pen',
-            spec: 'change pen color %colorParams by %n',
+            spec: 'change pen %colorParams by %n',
             defaults: [localize('hue'), 10]
         },
         reportColorParam: {
             only: SpriteMorph,
             type: 'reporter',
             category: 'pen',
-            spec: 'pen color %colorParams',
+            spec: 'pen %colorParams',
             defaults: [localize('hue')]
         },
         changeSize: {
