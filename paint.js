@@ -509,11 +509,11 @@ PaintColorPickerMorph.prototype.drawNew = function () {
             'rgb(139, 69, 19)',		//saddlebrown
             'rgb(128, 0, 0)',		//maroon
             'rgb(255, 0, 0)',		//red
-            'rgb(255, 192, 203)',	//pink
+            'rgb(255, 105, 180)',   //hot pink
             'rgb(255, 165, 0)',		//orange
             'rgb(210, 105, 30)', 	//chocolate
             'rgb(255, 255, 0)',		//yellow
-            'rgb(128, 128, 0)',		//olive
+            'rgb(245, 222, 179)',   //wheat
             'rgb(0, 255, 0)',		//lime
             'rgb(0, 128, 0)',		//green
             'rgb(0, 255, 255)',		//aqua
