@@ -2089,6 +2089,11 @@ Object.defineProperty(Color.prototype, 'b', {
     }
 );
 
+Object.defineProperty(Color.prototype, 'a', {
+    get: function () { return this.opacity / 100; },
+    set: function (val) { this.setOpacity(val * 100); }
+    }
+);
 // Color mixing:
 
 Color.prototype.mixed = function (proportion, otherColor) {
