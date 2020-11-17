@@ -9976,12 +9976,15 @@ SVG_Costume.uber = Costume.prototype;
 
 // SVG_Costume instance creation
 
-function SVG_Costume(svgImage, name, rotationCenter) {
+function SVG_Costume(svgImage, name, rotationCenter, noFit) {
     this.contents = svgImage;
     this.shapes = [];
-    this.shrinkToFit(this.maxExtent());
+    if (!noFit) {
+        this.shrinkToFit(this.maxExtent());
+    } else {
+        this.rotationCenter = rotationCenter || this.center();
+    }
     this.name = name || null;
-    this.rotationCenter = rotationCenter || this.center();
     this.version = Date.now(); // for observer optimization
     this.loaded = null; // for de-serialization only
 }
@@ -10017,9 +10020,40 @@ SVG_Costume.prototype.copy = function () {
 // SVG_Costume thumbnail
 
 SVG_Costume.prototype.shrinkToFit = function (extentPoint) {
-    // overridden for unrasterized SVGs
-    nop(extentPoint);
-    return;
+    var scale,
+        svgSrc,
+        svgHeader,
+        svgHeaderLength,
+        svgEncoded,
+        svgDecoded,
+        img = new Image();
+    if (extentPoint.x < this.width() || (extentPoint.y < this.height())) {
+        scale = Math.min(
+            (extentPoint.x / this.width()),
+            (extentPoint.y / this.height())
+        );
+        this.rotationCenter = new Point(this.width() * scale, this.height() * scale).divideBy(2);
+        svgSrc= this.contents.src;
+        svgHeaderLength = svgSrc.search('base64,') + 7;
+        svgHeader = svgSrc.substring(0,svgHeaderLength);
+        svgEncoded = svgSrc.substring(svgHeaderLength);
+        svgDecoded = atob(svgEncoded);
+        svgDecoded = svgDecoded.replace(
+            /(width\s?=\s?[\"\'])(\d*)/i,
+            '$1' + (this.width() * scale)
+        );
+        svgDecoded = svgDecoded.replace(
+            /(height\s?=\s?[\"\'])(\d*)/i,
+            '$1' + (this.height() * scale)
+        );
+        svgEncoded = btoa(svgDecoded);
+        img.src = svgHeader + svgEncoded;
+
+        this.contents = img;
+
+    } else {
+        this.rotationCenter = new Point(this.width(), this.height()).divideBy(2);
+    }
 };
 
 SVG_Costume.prototype.parseShapes = function () {

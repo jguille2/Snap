@@ -2139,7 +2139,11 @@ IDE_Morph.prototype.droppedImage = function (aCanvas, name) {
 };
 
 IDE_Morph.prototype.droppedSVG = function (anImage, name) {
-    var costume = new SVG_Costume(anImage, name.split('.')[0]);
+    var costume = new SVG_Costume(
+            anImage,
+            this.currentSprite.newCostumeName(name ? name.split('.')[0] : ''
+            )
+        );
     this.currentSprite.addCostume(costume);
     this.currentSprite.wearCostume(costume);
     this.spriteBar.tabBar.tabTo('costumes');
