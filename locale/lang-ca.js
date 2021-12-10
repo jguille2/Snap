@@ -2616,6 +2616,10 @@ SnapTranslator.dict.ca = {
         'Colors i Paletes',
     'Incorporates the former crayon and set RGB libraries.  Implements fair hues (more orange, less green, adds brown) and a linear color scale including grayscale and fair-hue-based shades.':
         'Incorpora les llibreries inicials de Paletes de color i Colors RGB. Utilitza tonalitats més ajustades (més taronges, menys verds, afegeix marrons) i una escala de color lineal que inclou escala de grisos i més matisos de tonalitat.',
+    'Crayons':
+        'Llapis de colors',
+    'Just the crayons, without the rest of the colors library.  Fast and simple.':
+        'Blocs per treballar amb un estoig de colors, sense la resta de la llibreria de colors. Ràpid i senzill.',
     'Bignums, rationals, complex #s':
         'Números sencers de precisió infinita, racionals exactes i complexos',
     'The full Scheme numeric tower.  "USE BIGNUMS <True>" to enable.':
@@ -2702,6 +2706,15 @@ SnapTranslator.dict.ca = {
         'Crea variables',
     'Create and manage global/sprite/script variables in a script':
         'Crea i gestiona variables de tipus global/sprite/script dins els programes',
+
+    'Serial Ports':
+        'Ports sèrie',
+    'Connect to hardware extensions through the Web Serial API (Chromium, Chrome or Edge required)':
+        'Connexió a dispositius utilitzant el protocol Web Serial API (requereix utilitzar Chromium, Chrome o Edge com a navegador)',
+    'Signada (Network remote control)':
+        'Signada (control remot per xarxa)',
+    'Interact with MicroBlocks devices via WiFi. Requires the device to have a TFT display, two buttons and WiFi capability, as well as the Signada MicroBlocks project loaded. The Citilab ED1 and a bunch of the M5Stack boards are some of the devices that work with Signada.':
+        'Permet la interacció amb dispositius programats amb MicroBlocks mitjançant la connexió WiFi. El dispositiu ha de tenir una pantalla TFT, dos botons i connectivitat WiFi i ha de tenir el programari Signada (disponible a les llibreries de MicroBlocks). Exemples de dispositius compatibles amb Signada són la placa ED1 del Citilab i la M5Stack.',
 
     'Hummingbird robotics':
         'Hummingbird robòtics',
